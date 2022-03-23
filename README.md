@@ -5,6 +5,7 @@
 A simple docker-compose is provived to setup the environment. For run it is enough to use the following command:
 
 ```
+mkdir logs # first time only
 sudo chmod 777 ./logs # first time only
 docker-compose up
 ```
@@ -28,6 +29,12 @@ Create virtual environment for example:
 ```
 conda create --name zamg python=3.8
 conda activate zamg
+```
+
+Create the log folder:
+```
+mkdir logs # first time only
+sudo chmod 777 ./logs # first time only
 ```
 
 Install the requirements: 
