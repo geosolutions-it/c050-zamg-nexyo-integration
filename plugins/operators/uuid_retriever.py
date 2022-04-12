@@ -2,11 +2,11 @@ import json
 from typing import Any, Dict, Optional
 from itertools import chain
 from airflow import AirflowException
-from airflow.models import BaseOperator
+from airflow.models import BaseOperator, Variable
 from airflow.providers.http.hooks.http import HttpHook
 
 
-class MetadataRetrieverOperator(BaseOperator):
+class UUIDRetriever(BaseOperator):
 
     """
     Will call the GraphQL endpoint to retrieve the metadata
@@ -37,8 +37,10 @@ class MetadataRetrieverOperator(BaseOperator):
         template_env = context["dag"].get_template_env()
 
         _template = template_env.get_template('gather.j2')
-        offset = 0
-        first = 10
+
+        offset = Variable.get("OFFSET", 0)
+        first = Variable.get("USER_TO_FETCH", 10)
+
         uuid_founds = []
         while True:
             _loop_context = {"OFFSET": offset, "FIRST": first}
@@ -57,12 +59,12 @@ class MetadataRetrieverOperator(BaseOperator):
             
             data = response.json().get("data", {}).get("queryDataset", [])
             if not data:
-                self.log.info("No data available anymore")
+                self.log.info("No more data available")
                 break
 
             uuids = list(chain.from_iterable([val.values() for val in data]))
             self.log.info(f"UUIDs found: {uuids}")
-            uuid_founds.append(uuids)
+            uuid_founds.extend(uuids)
             offset += 10
 
-        return ','.join(uuid_founds)
+        return uuid_founds
