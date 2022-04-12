@@ -27,7 +27,7 @@ password: airflow
 
 Create virtual environment for example: 
 ```
-conda create --name zamg python=3.8
+conda create --name zamg python=3.9
 conda activate zamg
 ```
 
