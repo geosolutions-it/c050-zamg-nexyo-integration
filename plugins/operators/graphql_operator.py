@@ -22,7 +22,6 @@ class MetadataRetrieverOperator(BaseOperator):
         endpoint: str,
         http_conn_id: str,
         method: str = "GET",
-        payload_path: Any = None,
         headers: Optional[Dict[str, str]] = None,
         **kwargs
     ) -> None:
@@ -30,7 +29,6 @@ class MetadataRetrieverOperator(BaseOperator):
         self.endpoint = endpoint
         self.http_conn_id = http_conn_id
         self.method = method
-        self.payload_path = payload_path
         self.headers = headers
 
     def execute(self, context) -> Dict:
@@ -38,9 +36,10 @@ class MetadataRetrieverOperator(BaseOperator):
 
         template_env = context["dag"].get_template_env()
 
-        _template = template_env.get_template('retrieve.j2')
+        _template = template_env.get_template('gather.j2')
         offset = 0
         first = 10
+        uuid_founds = []
         while True:
             _loop_context = {"OFFSET": offset, "FIRST": first}
 
@@ -62,8 +61,8 @@ class MetadataRetrieverOperator(BaseOperator):
                 break
 
             uuids = list(chain.from_iterable([val.values() for val in data]))
-            self.log.info(uuids)
+            self.log.info(f"UUIDs found: {uuids}")
+            uuid_founds.append(uuids)
             offset += 10
 
-
-        return
+        return ','.join(uuid_founds)
