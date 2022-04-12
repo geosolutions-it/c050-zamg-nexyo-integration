@@ -44,7 +44,7 @@ class MetadataRetrieverOperator(BaseOperator):
         while True:
             _loop_context = {"OFFSET": offset, "FIRST": first}
 
-            self.log.info("Preparing Payload")
+            self.log.info(f"Preparing Payload for offset {offset}")
 
             payload = {"query": _template.render(**_loop_context).replace("\n", " ")}
 
@@ -62,7 +62,7 @@ class MetadataRetrieverOperator(BaseOperator):
                 break
 
             uuids = list(chain.from_iterable([val.values() for val in data]))
-
+            self.log.info(uuids)
             offset += 10
 
 
