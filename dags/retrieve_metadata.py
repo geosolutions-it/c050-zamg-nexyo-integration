@@ -37,6 +37,7 @@ with dag:
         endpoint="api/v2/graphql",
         http_conn_id="zamg_connection",
         input_uuid="{{ti.xcom_pull(task_ids='gather_uuid')}}",
+        output_folder=os.getenv("OUTPUT_FOLDER"),
         method="POST",
         headers={"Content-Type": "application/json", "x-api-key": os.getenv("API_TOKEN")},
     )

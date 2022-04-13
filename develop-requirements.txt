@@ -5,3 +5,4 @@ flake8==4.0.1
 psycopg2==2.9.3
 pytest-env==0.6.2
 tzlocal==4.1
+jmespath==1.0.0
