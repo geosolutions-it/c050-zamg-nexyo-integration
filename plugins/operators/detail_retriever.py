@@ -2,6 +2,7 @@ import ast
 import json
 import os
 from typing import Dict, Optional
+from jinja2 import Environment, select_autoescape, FileSystemLoader
 
 import jmespath
 from airflow.models import BaseOperator
@@ -50,9 +51,15 @@ class DetailRetriever(BaseOperator):
         self.input_uuid = None
 
         http = HttpHook(self.method, http_conn_id=self.http_conn_id)        
+
+        # using the default template to take the details from the API
         template_env = context["dag"].get_template_env()
         _search_paths = ast.literal_eval(template_env.get_template('mapping.json').render())
         _template = template_env.get_template('fetch.j2')
+
+        # using a custom template for handle the XML with Jinja  with autoescaping enabled for XML
+        _xml_template_env = self._get_xml_template_evironment(context)
+
         for el in uuid_as_gen:
             _loop_context = {"UUID": el}
             payload = {"query": _template.render(**_loop_context).replace("\n", " ")}
@@ -69,8 +76,19 @@ class DetailRetriever(BaseOperator):
             self._save_file(
                 uuid=el,
                 data=self._parse_detail(databox=response.json(), _search_paths=_search_paths),
-                output=self.output_folder
+                output=self.output_folder,
+                _xml_template_env=_xml_template_env
             )
+
+    def _get_xml_template_evironment(self, context):
+        Environment(
+            loader=FileSystemLoader(context["dag"].template_searchpath),
+            cache_size=0,
+            autoescape=select_autoescape(
+                enabled_extensions=('xml', 'html'),
+                default_for_string=True,
+            )
+        )
 
     def _parse_detail(self, databox, _search_paths):
         values = {}
@@ -81,10 +99,9 @@ class DetailRetriever(BaseOperator):
             )
         yield values
 
-    def _save_file(self, uuid, data, output):
-        _path = f"{output}/{uuid}"
-        if not os.path.exists(_path):
-            os.makedirs(_path, exist_ok=True)
-        with open(f"{_path}/{uuid}.txt", 'w+') as _file:
-            _file.writelines(json.dumps([x for x in data][0]))
+    def _save_file(self, uuid, data, output, _xml_template_env):
+        _template = _xml_template_env.get_template('placeholder.j2')
+        with open(f"{output}/{uuid}.xml", 'w+') as _file:
+            _data = [x for x in data][0]
+            _file.write(_template.render(**_data))
 
