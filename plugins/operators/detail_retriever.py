@@ -28,6 +28,9 @@ class DetailRetriever(BaseOperator):
         http_conn_id: str,
         input_uuid: str,
         output_folder: str,
+        detail_template: str,
+        xml_template: str,
+        mapping_template: str,
         method: str = "GET",
         headers: Optional[Dict[str, str]] = None,
         **kwargs
@@ -39,6 +42,9 @@ class DetailRetriever(BaseOperator):
         self.headers = headers
         self.input_uuid = input_uuid
         self.output_folder = output_folder
+        self.detail_template = detail_template
+        self.xml_template = xml_template
+        self.mapping_template = mapping_template
 
     def execute(self, context) -> Dict:
 
@@ -54,8 +60,8 @@ class DetailRetriever(BaseOperator):
 
         # using the default template to take the details from the API
         template_env = context["dag"].get_template_env()
-        _search_paths = ast.literal_eval(template_env.get_template('mapping.json').render())
-        _template = template_env.get_template('fetch.j2')
+        _search_paths = ast.literal_eval(template_env.get_template(self.mapping_template).render())
+        _template = template_env.get_template(self.detail_template)
 
         # using a custom template for handle the XML with Jinja  with autoescaping enabled for XML
         _xml_template_env = self._get_xml_template_evironment(context)
@@ -94,7 +100,7 @@ class DetailRetriever(BaseOperator):
         yield values
 
     def _save_file(self, uuid, data, output, _xml_template_env):
-        _template = _xml_template_env.get_template('placeholder.j2')
+        _template = _xml_template_env.get_template(self.xml_template)
         with open(f"{output}/{uuid}.xml", 'w+') as _file:
             _file.write(_template.render(**[x for x in data][0]))
 

@@ -21,6 +21,7 @@ class UUIDRetriever(BaseOperator):
         self,
         endpoint: str,
         http_conn_id: str,
+        gathering_template_name: str,
         method: str = "GET",
         headers: Optional[Dict[str, str]] = None,
         **kwargs
@@ -30,13 +31,14 @@ class UUIDRetriever(BaseOperator):
         self.http_conn_id = http_conn_id
         self.method = method
         self.headers = headers
+        self.gathering_template_name = gathering_template_name
 
     def execute(self, context) -> Dict:
         http = HttpHook(self.method, http_conn_id=self.http_conn_id)
 
         template_env = context["dag"].get_template_env()
         self.log.info(self.headers)
-        _template = template_env.get_template('gather.j2')
+        _template = template_env.get_template(self.gathering_template_name)
 
         offset = Variable.get("OFFSET", 0)
         first = Variable.get("USER_TO_FETCH", 10)
