@@ -92,8 +92,7 @@ class DetailRetriever(BaseOperator):
     def _save_file(self, uuid, data, output, _xml_template_env):
         _template = _xml_template_env.get_template('placeholder.j2')
         with open(f"{output}/{uuid}.xml", 'w+') as _file:
-            _data = [x for x in data][0]
-            _file.write(_template.render(**_data))
+            _file.write(_template.render(**[x for x in data][0]))
 
 
     def _get_xml_template_evironment(self, context):
