@@ -80,16 +80,6 @@ class DetailRetriever(BaseOperator):
                 _xml_template_env=_xml_template_env
             )
 
-    def _get_xml_template_evironment(self, context):
-        Environment(
-            loader=FileSystemLoader(context["dag"].template_searchpath),
-            cache_size=0,
-            autoescape=select_autoescape(
-                enabled_extensions=('xml', 'html'),
-                default_for_string=True,
-            )
-        )
-
     def _parse_detail(self, databox, _search_paths):
         values = {}
         for key, _path in _search_paths.items():
@@ -105,3 +95,13 @@ class DetailRetriever(BaseOperator):
             _data = [x for x in data][0]
             _file.write(_template.render(**_data))
 
+
+    def _get_xml_template_evironment(self, context):
+        return Environment(
+            loader=FileSystemLoader(context["dag"].template_searchpath),
+            cache_size=0,
+            autoescape=select_autoescape(
+                enabled_extensions=('xml', 'html'),
+                default_for_string=True,
+            )
+        )
