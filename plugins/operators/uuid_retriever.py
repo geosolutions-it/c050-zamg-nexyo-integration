@@ -53,6 +53,9 @@ class UUIDRetriever(BaseOperator):
             response = http.run(self.endpoint, json.dumps(payload), self.headers)
             response.raise_for_status()
 
+            if not hasattr(response, "json"):
+                raise AirflowException("The resoinse provided is not available as JSON")
+
             if response.json().get("errors", []):
                 self.log.error(f"Endpoint return an error: {response.json()}")
                 raise AirflowException(f"Endpoint return an error: {response.json()}")

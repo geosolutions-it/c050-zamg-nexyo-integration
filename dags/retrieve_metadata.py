@@ -1,7 +1,7 @@
 import os
 
 from datetime import datetime
-from airflow import DAG
+from airflow import DAG, AirflowException
 from operators.uuid_retriever import UUIDRetriever
 from operators.detail_retriever import DetailRetriever
 from airflow.configuration import conf
@@ -23,13 +23,20 @@ dag = DAG(
     ]
 )
 
+
+api_token = os.getenv("API_TOKEN")
+
+if api_token is None:
+    raise AirflowException("The API token is not configured")
+
+
 with dag:
     gather_uuid = UUIDRetriever(
         task_id="gather_uuid",
         endpoint="api/v2/graphql",
         http_conn_id="zamg_connection",
         method="POST",
-        headers={"Content-Type": "application/json", "x-api-key": os.getenv("API_TOKEN")},
+        headers={"Content-Type": "application/json", "x-api-key": api_token},
     )
     
     generate_metadata = DetailRetriever(
@@ -39,7 +46,7 @@ with dag:
         input_uuid="{{ti.xcom_pull(task_ids='gather_uuid')}}",
         output_folder=os.getenv("OUTPUT_FOLDER"),
         method="POST",
-        headers={"Content-Type": "application/json", "x-api-key": os.getenv("API_TOKEN")},
+        headers={"Content-Type": "application/json", "x-api-key": api_token},
     )
 
     gather_uuid >> generate_metadata

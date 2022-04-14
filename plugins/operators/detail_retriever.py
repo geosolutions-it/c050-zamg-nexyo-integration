@@ -44,7 +44,7 @@ class DetailRetriever(BaseOperator):
 
         uuid_found = ast.literal_eval(self.input_uuid)
         self.log.info(f"UUID found {len(uuid_found)}")
-        # converting uuid into a generator for memory usage
+        # converting uuid into a generator for reduce memory usage
         uuid_as_gen = (y for y in uuid_found)
         # clean-up memory
         del uuid_found
@@ -67,6 +67,10 @@ class DetailRetriever(BaseOperator):
             self.log.info(f"Calling HTTP method for UUID: {el}")
             response = http.run(self.endpoint, json.dumps(payload), self.headers)
             response.raise_for_status()
+
+            if not hasattr(response, "json"):
+                context['ti'].xcom_push(key=el, value="The response provided is not a json")
+                continue
 
             if response.json().get("errors", []):
                 self.log.error(f"Endpoint return an error: {response.json().get('errors')}")
