@@ -35,39 +35,42 @@ class UUIDRetriever(BaseOperator):
         http = HttpHook(self.method, http_conn_id=self.http_conn_id)
 
         template_env = context["dag"].get_template_env()
-
+        self.log.info(self.headers)
         _template = template_env.get_template('gather.j2')
 
         offset = Variable.get("OFFSET", 0)
         first = Variable.get("USER_TO_FETCH", 10)
 
         uuid_founds = []
-        while True:
-            _loop_context = {"OFFSET": offset, "FIRST": first}
+        try:
+            while True:
+                _loop_context = {"OFFSET": offset, "FIRST": first}
 
-            self.log.info(f"Preparing Payload for offset {offset}")
+                self.log.info(f"Preparing Payload for offset {offset}")
 
-            payload = {"query": _template.render(**_loop_context).replace("\n", " ")}
+                payload = {"query": _template.render(**_loop_context).replace("\n", " ")}
 
-            self.log.info("Calling HTTP method")
-            response = http.run(self.endpoint, json.dumps(payload), self.headers)
-            response.raise_for_status()
+                self.log.info("Calling HTTP method")
+                response = http.run(self.endpoint, json.dumps(payload), self.headers)
+                response.raise_for_status()
 
-            if not hasattr(response, "json"):
-                raise AirflowException("The resoinse provided is not available as JSON")
+                if response.json().get("errors", []):
+                    self.log.error(f"Endpoint return an error: {response.json()}")
+                    raise AirflowException(f"Endpoint return an error: {response.json()}")
+                
+                data = response.json().get("data", {}).get("queryDataset", [])
+                if not data:
+                    self.log.info("No more data available")
+                    break
 
-            if response.json().get("errors", []):
-                self.log.error(f"Endpoint return an error: {response.json()}")
-                raise AirflowException(f"Endpoint return an error: {response.json()}")
-            
-            data = response.json().get("data", {}).get("queryDataset", [])
-            if not data:
-                self.log.info("No more data available")
-                break
+                uuids = list(chain.from_iterable([val.values() for val in data]))
+                self.log.info(f"UUIDs found: {uuids}")
+                uuid_founds.extend(uuids)
+                offset += 10
 
-            uuids = list(chain.from_iterable([val.values() for val in data]))
-            self.log.info(f"UUIDs found: {uuids}")
-            uuid_founds.extend(uuids)
-            offset += 10
+        except AirflowException as e:
+            raise e
+        except Exception as e:
+            raise AirflowException(e)
 
         return uuid_founds
