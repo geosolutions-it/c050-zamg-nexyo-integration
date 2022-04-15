@@ -19,7 +19,7 @@
     "INSPIRE_ACCESSCONSTRAINTS": "data.queryDataset[0].metadata[0].inspire_accessconstraints",
     "INSPIRE_CONFORMATIONRESULT": "data.queryDataset[0].metadata[0].inspire_conformationresult",
     "INSPIRE_COORD": "data.queryDataset[0].metadata[0].inspire_coord",
-    "INSPIRE_CREATION_DATE": "data.queryDataset[0].metadata[0].INSPIRE_CREATION_DATE",
+    "INSPIRE_CREATION_DATE": "data.queryDataset[0].metadata[0].inspire_creation_date",
     "INSPIRE_DATAURL": "data.queryDataset[0].metadata[0].inspire_dataurl",
     "INSPIRE_EASTLONG": "data.queryDataset[0].metadata[0].inspire_eastlong",
     "INSPIRE_EMAIL": "data.queryDataset[0].metadata[0].inspire_email",
