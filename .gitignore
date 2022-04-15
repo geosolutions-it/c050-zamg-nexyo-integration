@@ -6,7 +6,7 @@ airflow-scheduler.out
 airflow-scheduler.log
 airflow-webserver.pid
 outputs/
-
+dev.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
