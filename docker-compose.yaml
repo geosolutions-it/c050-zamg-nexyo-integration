@@ -43,11 +43,14 @@
     environment:
       &airflow-common-env
       GUNICORN_CMD_ARGS: "--worker-tmp-dir /dev/shm --forwarded-allow-ips '*'"
+      API_TOKEN: "${API_TOKEN}"
     volumes:
       - ./airflow.cfg:/opt/airflow/airflow.cfg #  required load the custom config.
       - ./dags:/opt/airflow/dags #  required for the dags.
-      - ./logs:/opt/airflow/logs  # required for logs metric
       - ./plugins:/opt/airflow/plugins #  plugin folder, required for custom plugin
+      - ${LOGS_PATH:-./logs}:/opt/airflow/logs  # required for logs metric
+      - ${TEMPLATES_PATH:-./templates}:/opt/airflow/templates
+      - ${OUTPUT_PATH:-./output}:/opt/airflow/output
     user: "${AIRFLOW_UID:-50000}:0"
     depends_on:
       rabbit:

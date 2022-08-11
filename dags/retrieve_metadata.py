@@ -9,14 +9,16 @@ from airflow.configuration import conf
 
 default_args = {"owner": "airflow", "start_date": datetime(2022, 4, 12)}
 
-TEMPLATE_PATH = os.getenv("RETRIEVE_QUERY_PAYLOAD", f'{conf.get("core", "dags_folder")}/dag_utils/templates')
+TEMPLATES_PATH_INTERNAL = os.getenv("TEMPLATES_PATH_INTERNAL", f'{os.getenv("AIRFLOW_HOME")}/templates')
+OUTPUT_PATH_INTERNAL = os.getenv("OUTPUT_PATH_INTERNAL", f'{os.getenv("AIRFLOW_HOME")}/output')
 
-MAPPING_QUERY_TEMPLATE_NAME =os.getenv("MAPPING_QUERY_TEMPLATE_NAME", 'mapping.json')
-XML_OUTPUT_TEMPLATE_NAME = os.getenv("XML_OUTPUT_TEMPLATE_NAME", 'placeholder.j2')
-INITIAL_GATHERING_TEMPLATE_NAME = os.getenv("INITIAL_GATHERING_TEMPLATE_NAME", 'gather.j2')
-GET_DETAIL_QUERY_TEMPLATE_NAME = os.getenv("GET_DETAIL_QUERY_TEMPLATE_NAME", 'fetch.j2')
+GATHER_QUERY_TEMPLATE_NAME = os.getenv("GATHER_QUERY_TEMPLATE_NAME", '10_gather.j2')
+FETCH_QUERY_TEMPLATE_NAME = os.getenv("FETCH_QUERY_TEMPLATE_NAME", '20_fetch.j2')
 
-OUTPUT_FOLDER_PATH = os.getenv("OUTPUT_FOLDER_PATH", f'{os.getenv("AIRFLOW_HOME")}/outputs')
+MAPPING_FILE_NAME = os.getenv("MAPPING_FILE_NAME", '30_mapping.json')
+ISO_TEMPLATE_NAME = os.getenv("ISO_TEMPLATE_NAME", '40_iso_template.j2')
+
+
 API_TOKEN = os.getenv("API_TOKEN")
 
 
@@ -27,8 +29,8 @@ dag = DAG(
     description="Call the graphql endpoint to retrieve the metadata and then save them as file",
     catchup=False,
     template_searchpath=[
-        "dags/dag_utils/templates",
-        TEMPLATE_PATH
+        "templates",
+        TEMPLATES_PATH_INTERNAL
     ]
 )
 
@@ -42,7 +44,7 @@ with dag:
         task_id="gather_uuid",
         endpoint="api/v2/graphql",
         http_conn_id="zamg_connection",
-        gathering_template_name=INITIAL_GATHERING_TEMPLATE_NAME,
+        gathering_template_name=GATHER_QUERY_TEMPLATE_NAME,
         method="POST",
         headers={"Content-Type": "application/json", "x-api-key": API_TOKEN},
     )
@@ -52,10 +54,10 @@ with dag:
         endpoint="api/v2/graphql",
         http_conn_id="zamg_connection",
         input_uuid="{{ti.xcom_pull(task_ids='gather_uuid')}}",
-        output_folder=OUTPUT_FOLDER_PATH,
-        detail_template=GET_DETAIL_QUERY_TEMPLATE_NAME,
-        xml_template=XML_OUTPUT_TEMPLATE_NAME,
-        mapping_template=MAPPING_QUERY_TEMPLATE_NAME,
+        output_folder=OUTPUT_PATH_INTERNAL,
+        detail_template=FETCH_QUERY_TEMPLATE_NAME,
+        xml_template=ISO_TEMPLATE_NAME,
+        mapping_template=MAPPING_FILE_NAME,
 
         method="POST",
         headers={"Content-Type": "application/json", "x-api-key": API_TOKEN},
