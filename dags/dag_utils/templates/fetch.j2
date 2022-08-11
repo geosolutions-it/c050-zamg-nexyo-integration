@@ -1,0 +1,76 @@
+{
+  queryDataset(filter: {uuid: { eq: "{{UUID}}"}}) { 
+    uuid
+    title
+    metadata {
+      _title
+      __typename
+      ... on INSPIRE_003 { 
+        uuid       
+        _title
+        _createdAt
+        _createdBy {
+          uuid
+          email
+          firstname
+          lastname
+        }
+        _lastUpdatedAt
+        _lastUpdatedBy {
+          uuid
+          email
+          firstname
+          lastname          
+        }
+        _draft
+        _global
+        inspire_creation_date
+        inspire_meta_language
+        inspire_dataurl
+        inspire_language
+        inspire_topiccategory
+        inspire_conformationresult
+        inspire_eastlong
+        inspire_keywords
+        inspire_westlong
+        inspire_meta_date
+        inspire_spatial_Res
+        inspire_orgname
+        inspire_encoding
+        inspire_meta_email
+        inspire_meta_orgname
+        inspire_public_constraints {
+          limited_access_url
+          limited_access_text
+          limited_access_title          
+        }
+        inspire_ressource_identifier
+        inspire_title
+        inspire_southlat
+        inspire_last_revision
+        inspire_resource_type
+        inspire_useconstraints {
+          usage_url
+          usage_text
+          usage_title          
+        }
+        inspire_temporal_extent
+        inspire_coord {
+          coord_url
+          coord_epsg
+          coord_title
+        }
+        inspire_spatialRep
+        inspire_lineage
+        inspire_abstract
+        inspire_northlat
+        inspire_accessconstraints {
+          access_url
+          access_text
+          access_title
+        }
+        inspire_email        
+      }
+    }
+  }
+}

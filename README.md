@@ -67,7 +67,13 @@ airflow db init
 
 Create default user
 ```
-airflow users create --username airflow --firstname airflow -lastname airflow --role Admin --email airflow@example.org --password airflow
+airflow users create \
+    --username airflow \
+    --firstname FIRST_NAME \
+    --lastname LAST_NAME \
+    --role Admin \
+    --email admin@example.org
+    --password airflow
 ```
 
 Run the webserver and the scheduler:
